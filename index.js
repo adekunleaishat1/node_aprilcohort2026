@@ -1,6 +1,8 @@
 const express = require("express")
 const app = express()
 require("ejs")
+const mongoose = require("mongoose")
+
 
 
 // middlewares
@@ -10,12 +12,14 @@ app.use(express.urlencoded())
 
 // functions
 let userarray = []
+let curuser = ""
 
 app.get("/",(req, res)=>{
    console.log( __dirname);
-   
+   console.log(req.query);
+   const {name} = req.query 
   // res.sendFile(__dirname + "/index.html")
-  res.render("index")
+  res.render("index",{gender:"female",name})
 })
 
 app.get("/users",(request, response)=>{
@@ -55,12 +59,34 @@ app.post("/user/login",(req, res)=>{
    console.log(existuser);
     if (existuser && existuser.password == password) {
       console.log("login successful");
-      
+      curuser = existuser.username
+      res.redirect(`/?name=${existuser.username}`)
     }else{
       console.log("invalid user");
-      
+       res.redirect("/login")
     }
  })
+
+
+
+
+ const uri = "mongodb+srv://aishatadekunle877:aishat@cluster0.t92x8pf.mongodb.net/?appName=Cluster0"
+
+
+
+ const connect = async() =>{
+  try {
+   const connection = await mongoose.connect(uri)
+   if(connection){
+    console.log("database connected successfully");
+   }
+  } catch (error) {
+    console.log(error);
+    
+  }
+ }
+connect()
+
 
 const port = 8003
 app.listen(port,()=>{
