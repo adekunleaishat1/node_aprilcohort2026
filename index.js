@@ -5,6 +5,7 @@ const mongoose = require("mongoose")
 
 
 
+
 // middlewares
 app.set("view engine", "ejs")
 app.use(express.urlencoded())
@@ -13,6 +14,15 @@ app.use(express.urlencoded())
 // functions
 let userarray = []
 let curuser = ""
+
+const userschema = new mongoose.Schema({
+  username:{type:String, required:true},
+  email:{type:String,unique:true, required:true},
+  password:{type:String, required:true}
+})
+
+const usermodel = mongoose.model("user_collection",userschema)
+
 
 app.get("/",(req, res)=>{
    console.log( __dirname);
@@ -37,19 +47,39 @@ app.get("/users",(request, response)=>{
 })
 
 app.get("/signup",(req, res)=>{
- res.render("signup")
+  console.log( req.query);
+  const {message} = req.query
+ res.render("signup",{message})
 })
 
 app.get("/login",(req,res)=>{
   res.render("login")
 })
 
-app.post("/user/signup",(req, res)=>{
+app.post("/user/signup", async(req, res)=>{
  console.log(req.body);
-  userarray.push(req.body)
-   console.log(userarray);
-  //  res.send("signup successful")
-  res.redirect("/login")
+ const {username , email,password} = req.body
+ let errormessage = ""
+ try {
+  if (!username || !email || !password) {
+   errormessage = "All fields are mandatory"
+   return res.redirect(`/signup/?message=${errormessage}`)
+  }
+   const alluser =  await usermodel.find()
+   const existuser = alluser.find((user)=> user.email == req.body.email && user.password == req.body.password)
+  if (existuser) {
+    errormessage = "user already exist"
+   return res.redirect(`/signup/?message=${errormessage}`)
+  }
+   const createdUser =  await usermodel.create(req.body)
+   console.log(createdUser);
+   if (createdUser) {
+     return res.redirect("/login")
+   }
+    return res.redirect("/signup")
+ } catch (error) {
+  console.log(error);
+ }
 })
 
 app.post("/user/login",(req, res)=>{
@@ -70,7 +100,7 @@ app.post("/user/login",(req, res)=>{
 
 
 
- const uri = "mongodb+srv://aishatadekunle877:aishat@cluster0.t92x8pf.mongodb.net/?appName=Cluster0"
+ const uri = "mongodb+srv://aishatadekunle877:aishat@cluster0.t92x8pf.mongodb.net/April2026?appName=Cluster0"
 
 
 
