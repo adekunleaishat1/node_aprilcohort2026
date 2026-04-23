@@ -2,6 +2,8 @@ const express = require("express")
 const app = express()
 require("ejs")
 const mongoose = require("mongoose")
+const { asyncWrapProviders } = require("node:async_hooks")
+const { log } = require("node:console")
 
 
 
@@ -82,19 +84,24 @@ app.post("/user/signup", async(req, res)=>{
  }
 })
 
-app.post("/user/login",(req, res)=>{
+app.post("/user/login",async(req, res)=>{
    console.log(req.body);
-   const {email , password} = req.body
-   const existuser =  userarray.find((user)=> user.email === email)
-   console.log(existuser);
-    if (existuser && existuser.password == password) {
+   try {
+       const {email , password} = req.body
+      const existUser =   await usermodel.findOne({email})
+      console.log(existUser);
+    if (existUser && existUser.password == password) {
       console.log("login successful");
-      curuser = existuser.username
-      res.redirect(`/?name=${existuser.username}`)
+      curuser = existUser.username
+      res.redirect(`/?name=${existUser.username}`)
     }else{
       console.log("invalid user");
        res.redirect("/login")
     }
+   } catch (error) {
+    console.log(error);
+    
+   }
  })
 
 
