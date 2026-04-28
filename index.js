@@ -25,6 +25,13 @@ const userschema = new mongoose.Schema({
 
 const usermodel = mongoose.model("user_collection",userschema)
 
+const todoschema = new mongoose.Schema({
+  title:{type:String, required:true, trim:true},
+  description:{type:String, required:true, trim:true},
+  user:{type:String, required:true}
+})
+const todomodel = mongoose.model("todo_collection", todoschema)
+
 
 app.get("/",(req, res)=>{
    console.log( __dirname);
@@ -84,6 +91,22 @@ app.post("/user/signup", async(req, res)=>{
  }
 })
 
+app.get("/todo", async(req, res)=>{
+ try {
+ 
+  const {name} = req.query
+  if (name) {
+    const alltodo = await todomodel.find()
+    console.log(alltodo);
+    
+    return res.render("todo",{name, alltodo})
+  }
+  res.redirect("/login")
+ } catch (error) {
+  console.log(error);
+  
+ }
+})
 app.post("/user/login",async(req, res)=>{
    console.log(req.body);
    try {
@@ -93,7 +116,7 @@ app.post("/user/login",async(req, res)=>{
     if (existUser && existUser.password == password) {
       console.log("login successful");
       curuser = existUser.username
-      res.redirect(`/?name=${existUser.username}`)
+      res.redirect(`/todo?name=${existUser.username}`)
     }else{
       console.log("invalid user");
        res.redirect("/login")
@@ -104,6 +127,42 @@ app.post("/user/login",async(req, res)=>{
    }
  })
 
+ app.post("/user/addtodo/:curuser", async(req, res)=>{
+   try {
+    console.log(req.params);
+    const {curuser} = req.params
+     console.log(req.body);
+    const newtodo = await todomodel.create({
+      ...req.body,
+      user:curuser
+     })
+     if (newtodo) {
+      return res.redirect(`/todo/?name=${curuser}`)
+     }
+    //  await todomodel.create({
+    //   title:req.body.title,
+    //   description:req.body.description,
+    //   user:curuser
+    //  })
+   } catch (error) {
+    
+   }
+ })
+ 
+ app.post("/user/deletetodo/:id", async(req, res)=>{
+   try {
+    console.log(req.params);
+    const {id} = req.params
+    const deletedtodo = await todomodel.findByIdAndDelete(id)
+    console.log(deletedtodo);
+    
+    if (deletedtodo) {
+      return res.redirect(`/todo/?name=${deletedtodo.user}`)
+    }
+   } catch (error) {
+    
+   }
+ })
 
 
 
