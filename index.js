@@ -2,58 +2,27 @@ const express = require("express")
 const app = express()
 require("ejs")
 const mongoose = require("mongoose")
-const { asyncWrapProviders } = require("node:async_hooks")
-const { log } = require("node:console")
-
-
-
+require("dotenv").config()
+const connect = require("./Database/db.config")
+const usermodel = require("./model/usermodel")
+const todomodel = require("./model/todomodel")
+const userrouter = require("./routes/user.route")
 
 // middlewares
 app.set("view engine", "ejs")
 app.use(express.urlencoded())
-
+app.use("/", userrouter)
 
 // functions
 let userarray = []
 let curuser = ""
 
-const userschema = new mongoose.Schema({
-  username:{type:String, required:true},
-  email:{type:String,unique:true, required:true},
-  password:{type:String, required:true}
-})
-
-const usermodel = mongoose.model("user_collection",userschema)
-
-const todoschema = new mongoose.Schema({
-  title:{type:String, required:true, trim:true},
-  description:{type:String, required:true, trim:true},
-  user:{type:String, required:true}
-})
-const todomodel = mongoose.model("todo_collection", todoschema)
 
 
-app.get("/",(req, res)=>{
-   console.log( __dirname);
-   console.log(req.query);
-   const {name} = req.query 
-  // res.sendFile(__dirname + "/index.html")
-  res.render("index",{gender:"female",name})
-})
 
-app.get("/users",(request, response)=>{
-//  response.send("Welcome to your Node class")
- response.json({
-    "users":[
-      {"name":"martin","class":"Nodejs", "gender":"male"},
-      {"name":"kush","class":"React", "gender":"male"},
-      {"name":"Tolu","class":"Angular", "gender":"male"},
-      {"name":"Dayo","class":"Nodejs", "gender":"male"},
-      {"name":"Demola","class":"Vuejs", "gender":"male"},
-      {"name":"Akeem","class":"Nodejs", "gender":"male"},
-    ]
- })
-})
+
+
+
 
 app.get("/signup",(req, res)=>{
   console.log( req.query);
@@ -166,24 +135,10 @@ app.post("/user/login",async(req, res)=>{
 
 
 
- const uri = "mongodb+srv://aishatadekunle877:aishat@cluster0.t92x8pf.mongodb.net/April2026?appName=Cluster0"
 
+ 
 
-
- const connect = async() =>{
-  try {
-   const connection = await mongoose.connect(uri)
-   if(connection){
-    console.log("database connected successfully");
-   }
-  } catch (error) {
-    console.log(error);
-    
-  }
- }
 connect()
-
-
 const port = 8003
 app.listen(port,()=>{
  console.log(`app started at port ${port}`);
