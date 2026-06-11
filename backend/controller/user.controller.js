@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs")
 const verificationMail = require("../utils/emailverification");
 const generateotp = require("../utils/generateOtp")
 const jwt = require("jsonwebtoken")
-
+const cloudinary = require("../utils/cloudinary")
 
 const userSignup = async (req, res) =>{
     try {
@@ -55,7 +55,7 @@ const userLogin = async (req, res) =>{
          if (!existuser.verified) { // This will check if the user email has been verified.
            return res.status(407).json({message:"please verify your email; check your mail."})
          }
-        const token =  await jwt.sign({email:existuser.email}, process.env.JWT_SECRETKEY, {expiresIn:300})
+        const token =  await jwt.sign({email:existuser.email}, process.env.JWT_SECRETKEY, {expiresIn:3000})
         return res.status(200).json({message:"user login successful", token})
        }
        return res.status(407).json({message:"Invalid credentials"})
@@ -90,4 +90,37 @@ const verifyEmail = async(req , res) =>{
   }
 }
 
-module.exports = {userSignup, userLogin, verifyEmail}
+const uploadpicture = async(req, res) =>{
+  try {
+    const {image} = req.body
+   console.log(req.user);
+   const useremail = req.user
+  const existuser =  await usermodel.findOne({email:useremail})
+  console.log(existuser);
+  console.log(existuser.profilePicture, "check if user jhas a profile picture" );
+  if (existuser.profilePicture.public_id) {
+    console.log("working");
+    const deletedimage = await cloudinary.uploader.destroy(existuser.profilePicture?.public_id)
+  }
+  const cloudimage =  await cloudinary.uploader.upload(image)
+  const updateduser =  await usermodel.findOneAndUpdate(
+    {email:useremail},
+    {profilePicture:{
+      public_id:cloudimage.public_id,
+      image_url: cloudimage.secure_url
+    }}
+
+   )
+
+   if (!updateduser) {
+      return res.status(405).json({message:"profile update failed", status:false}) 
+   }
+
+  return res.status(200).json({message:"profile image updated successfully", status:true}) 
+  
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
+module.exports = {userSignup, userLogin, verifyEmail,uploadpicture}

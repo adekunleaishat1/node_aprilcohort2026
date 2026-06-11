@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken")
 
-const verification = async(req , res) =>{
+const verification = async(req , res, next) =>{
   try {
     const token = req.headers.authorization.split(" ")[1]
    if (!token) {
@@ -9,7 +9,10 @@ const verification = async(req , res) =>{
   const verifiedToken = await jwt.verify(token, process.env.JWT_SECRETKEY)
   console.log(verifiedToken);
   if (verifiedToken) {
-    return res.status(200).json({message:"Token verified", email:verifiedToken.email})
+    req.user = verifiedToken.email
+    console.log(verifiedToken, "user token veriofication");
+    next()
+    // return res.status(200).json({message:"Token verified", email:verifiedToken.email})
   }
   
   } catch (error) {

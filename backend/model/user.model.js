@@ -6,7 +6,11 @@ const userschema = new mongoose.Schema({
   email:{type:String,unique:true, required:true},
   password:{type:String, required:true},
   verified:{type:Boolean, default:false},
-  verificationOtp:{type:String, required:true}
+  verificationOtp:{type:String, required:true},
+  profilePicture:{
+    public_id:{type:String},
+    image_url:{type:String}
+  } 
 })
 
 const usermodel = mongoose.model("user_collection",userschema)
